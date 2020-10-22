@@ -1,23 +1,47 @@
+import os
+from typing import List
+
+
+class CreateFolderException(Exception):
+    def __init__(self, message):
+        super(CreateFolderException, self).__init__(message)
+
+
 class Field:
 
     def __init__(self, name: str, default_value: any = None) -> None:
         self.name = name
         self.default_value = default_value
 
+
 class Folder:
 
-    def __init__(self, name: str) -> None:
-        self.name = name
+    def __init__(self, directory: str) -> None:
+        self.directory = directory
+
+    def create_directory(self) -> None:
+        try:
+            if not os.path.exists(self.directory):
+                os.makedirs(self.directory)
+        except OSError as error:
+            message = 'Not was possible create the folder on the directory {}'.format(self.directory)
+            raise CreateFolderException(message)
+
+    def __repr__(self) -> str:
+        return '{}({})'.format(__class__, self.directory)
+
+    def __str__(self) -> str:
+        return self.directory
 
 
 class Template:
 
-    def __init__(self, fields: list(Field)) -> None:
+    def __init__(self, fields: List[Field]) -> None:
         self.fields = fields
 
 
 class Project:
 
-    def __init__(self, templates: list(Template), folders: list(Folder)) -> None:
+    def __init__(self, templates: List[Template], folders: List[Folder]) -> None:
         self.templates = templates
         self.folders = folders
