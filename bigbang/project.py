@@ -1,6 +1,7 @@
 import os
 import logging
 from typing import List
+from abc import abstractmethod
 
 logger = logging.getLogger(__name__)
 
@@ -40,9 +41,34 @@ class Folder:
 
 
 class Template:
+    BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+    BASE_TEMPLATE_FOLDER = os.path.join(BASE_DIR, 'templates')
 
-    def __init__(self, fields: List[Field]) -> None:
+    def __init__(self, file_path: str, fields: List[Field] = None) -> None:
+        self.file_path = os.path.join(self.BASE_TEMPLATE_FOLDER, file_path)
         self.fields = fields
+        self._content = None
+
+    @abstractmethod
+    def load(self):
+        raise NotImplementedError('The load method should be implement')
+
+
+class LocalTemplate(Template):
+
+    def __init__(self, file_path: str, fields: List[Field] = None) -> None:
+        super().__init__(file_path, fields)
+
+    def load(self):
+        try:
+            with open(self.file_path, 'r') as file:
+                self._content = file.read()
+            return self._content
+        except UnicodeDecodeError:
+            message = 'Template file {} should be a valid utf-8 file'.format(
+                self.file_path)
+            logger.error(message, exc_info=True)
+            raise ValueError(message)
 
 
 class Project:
