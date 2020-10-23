@@ -1,6 +1,8 @@
 import os
+import logging
 from typing import List
 
+logger = logging.getLogger(__name__)
 
 class CreateFolderException(Exception):
     def __init__(self, message):
@@ -23,8 +25,9 @@ class Folder:
         try:
             if not os.path.exists(self.directory):
                 os.makedirs(self.directory)
-        except OSError as error:
+        except OSError:
             message = 'Not was possible create the folder on the directory {}'.format(self.directory)
+            logging.error(message, exc_info=True)
             raise CreateFolderException(message)
 
     def __repr__(self) -> str:
