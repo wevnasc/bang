@@ -29,7 +29,7 @@ class Folder:
         except OSError:
             message = 'Not was possible create the folder on the directory {}'.format(
                 self.path)
-            logging.error(message, exc_info=True)
+            logger.error(message, exc_info=True)
             raise CreateFolderException(message)
 
     def __repr__(self) -> str:
@@ -55,6 +55,7 @@ class Project:
     def create_folders(self):
         for directory in self.folders:
             directory.create_folder()
+        logger.info('{} project folders created'.format(self.name))
 
     def __repr__(self) -> str:
         return '{}({}, {})'.format(__class__, self.name, self.templates, self.folders)
