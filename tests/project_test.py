@@ -4,14 +4,22 @@ import os
 from bigbang.project import Folder, Project, LocalTemplate
 
 
-def test_create_folder(temp_folder):
+def test_create_folder(tmp_folder):
     folder = Folder('./tmp/tests')
     folder.create_folder()
 
-    assert 'tests' in os.listdir(temp_folder)
+    assert 'tests' in os.listdir(tmp_folder)
 
+def test_create_sub_folder(tmp_folder):
+    root_folder = './tmp/tests'
+    folder = Folder(root_folder)
+    folder.add_sub_folder(Folder('config'))
+    folder.create_folder()
 
-def test_raise_error_when_try_to_create_an_invalid_folder(temp_folder):
+    assert os.listdir(tmp_folder) == ['tests']
+    assert os.listdir(root_folder) == ['config']
+
+def test_raise_error_when_try_to_create_an_invalid_folder(tmp_folder):
     folder = Folder('./tmp/:')
     error_message = 'Not was possible create the folder on the directory :'
 
@@ -20,21 +28,24 @@ def test_raise_error_when_try_to_create_an_invalid_folder(temp_folder):
         assert error.message == error_message
 
 
-def test_create_project_folders(temp_folder):
-    folders = [Folder('./tmp/tests'), Folder('./tmp/src')]
-    project = Project('basic', [], folders)
+def test_create_project_folders(tmp_folder):
+    root_path = os.path.join(tmp_folder, 'basic')
+    folders = [Folder('tests'), Folder('src')]
+    project = Project('basic', Folder(root_path), folders)
 
     project.create_folders()
 
-    assert 'tests' in os.listdir(temp_folder)
-    assert 'src' in os.listdir(temp_folder)
+    assert os.listdir(tmp_folder) == ['basic'] 
+    assert os.listdir(root_path) == ['tests', 'src']
 
 
-def test_not_create_project_folders(temp_folder):
-    project = Project('basic', [], [])
+def test_not_create_project_folders(tmp_folder):
+    root_folder = os.path.join(tmp_folder, 'basic')
+    project = Project('basic', Folder(root_folder), [])
     project.create_folders()
 
-    assert os.listdir(temp_folder) == []
+    assert os.listdir(tmp_folder) == ['basic']
+    assert os.listdir(root_folder) == []
 
 
 def test_load_template(template_folder):
