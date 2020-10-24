@@ -5,7 +5,8 @@ from bigbang.project import (
     Field,
     Folder,
     Project,
-    LocalTemplate
+    LocalTemplate,
+    CreateTemplateException
 )
 
 
@@ -60,9 +61,30 @@ def test_load_template(template_folder):
     with open(os.path.join(template_folder, 'test.txt'), 'w') as file:
         file.write(template_text)
 
-    template = LocalTemplate('test.txt')
+    template = LocalTemplate('test.txt', '')
     assert template.load() == template_text
 
+def test_create_template(template_folder, tmp_folder):
+    template_text = 'template file'
+    with open(os.path.join(template_folder, 'test.txt'), 'w') as file:
+        file.write(template_text)
+
+    project_folder = os.path.join(tmp_folder, 'test.txt')
+    template = LocalTemplate('test.txt', project_folder)
+    template.create()
+
+    assert os.listdir(tmp_folder) == ['test.txt']
+
+def test_raise_error_on_create_template(template_folder, tmp_folder):
+    template_text = 'template file'
+    with open(os.path.join(template_folder, 'test.txt'), 'w') as file:
+        file.write(template_text)
+
+    project_folder = os.path.join(tmp_folder, 'test/')
+    template = LocalTemplate('test.txt', project_folder)
+    
+    with pytest.raises(CreateTemplateException):
+        template.create()
 
 def test_load_template_and_format(template_folder):
     template_text = 'my project {name} {description}'
@@ -71,7 +93,7 @@ def test_load_template_and_format(template_folder):
 
     name_field = Field('name', 'basic')
     description_field = Field('description', 'nice project')
-    template = LocalTemplate('test.txt', [name_field, description_field])
+    template = LocalTemplate('test.txt', '', [name_field, description_field])
     assert template.load() == 'my project basic nice project'
 
 
