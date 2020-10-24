@@ -1,7 +1,12 @@
 import pytest
 import os
 
-from bigbang.project import Folder, Project, LocalTemplate
+from bigbang.project import (
+    Field,
+    Folder,
+    Project,
+    LocalTemplate
+)
 
 
 def test_create_folder(tmp_folder):
@@ -9,6 +14,7 @@ def test_create_folder(tmp_folder):
     folder.create_folder()
 
     assert 'tests' in os.listdir(tmp_folder)
+
 
 def test_create_sub_folder(tmp_folder):
     root_folder = './tmp/tests'
@@ -18,6 +24,7 @@ def test_create_sub_folder(tmp_folder):
 
     assert os.listdir(tmp_folder) == ['tests']
     assert os.listdir(root_folder) == ['config']
+
 
 def test_raise_error_when_try_to_create_an_invalid_folder(tmp_folder):
     folder = Folder('./tmp/:')
@@ -35,7 +42,7 @@ def test_create_project_folders(tmp_folder):
 
     project.create_folders()
 
-    assert os.listdir(tmp_folder) == ['basic'] 
+    assert os.listdir(tmp_folder) == ['basic']
     assert os.listdir(root_path) == ['tests', 'src']
 
 
@@ -55,6 +62,17 @@ def test_load_template(template_folder):
 
     template = LocalTemplate('test.txt')
     assert template.load() == template_text
+
+
+def test_load_template_and_format(template_folder):
+    template_text = 'my project {name} {description}'
+    with open(os.path.join(template_folder, 'test.txt'), 'w') as file:
+        file.write(template_text)
+
+    name_field = Field('name', 'basic')
+    description_field = Field('description', 'nice project')
+    template = LocalTemplate('test.txt', [name_field, description_field])
+    assert template.load() == 'my project basic nice project'
 
 
 def test_raise_error_when_not_is_a_valid_utf_8_file(template_folder):

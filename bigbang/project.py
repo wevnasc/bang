@@ -2,6 +2,7 @@ import os
 import logging
 from typing import List
 from abc import abstractmethod
+from functools import reduce
 
 logger = logging.getLogger(__name__)
 
@@ -13,8 +14,9 @@ class CreateFolderException(Exception):
 
 class Field:
 
-    def __init__(self, name: str, default_value: any = None) -> None:
+    def __init__(self, name: str, value: str, default_value: any = None) -> None:
         self.name = name
+        self.value = value
         self.default_value = default_value
 
 
@@ -58,6 +60,8 @@ class Template:
     def __init__(self, file_path: str, fields: List[Field] = None) -> None:
         self.file_path = os.path.join(self.BASE_TEMPLATE_FOLDER, file_path)
         self.fields = fields
+        if self.fields == None:
+            self.fields = []
         self._content = None
 
     @abstractmethod
@@ -74,12 +78,19 @@ class LocalTemplate(Template):
         try:
             with open(self.file_path, 'r') as file:
                 self._content = file.read()
-            return self._content
+            return self._load_fields()
         except UnicodeDecodeError:
             message = 'Template file {} should be a valid utf-8 file'.format(
                 self.file_path)
             logger.error(message, exc_info=True)
             raise ValueError(message)
+
+    def _load_fields(self):
+        fields = reduce(
+            lambda dict, field: {**dict, field.name: field.value},
+            self.fields, {}
+        )
+        return self._content.format(**fields)
 
 
 class Project:
