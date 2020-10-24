@@ -11,6 +11,7 @@ class CreateFolderException(Exception):
     def __init__(self, message):
         super(CreateFolderException, self).__init__(message)
 
+
 class CreateTemplateException(Exception):
     def __init__(self, message):
         super(CreateTemplateException, self).__init__(message)
@@ -66,7 +67,8 @@ class LocalTemplate(Template):
             with open(self.to_path, 'w') as file:
                 file.write(self.load())
         except:
-            message = 'Not was possible create template {}'.format(self.to_path)
+            message = 'Not was possible create template {}'.format(
+                self.to_path)
             logger.error(message, exc_info=True)
             raise CreateTemplateException(message)
 
@@ -113,10 +115,11 @@ class Folder:
 
 class Project:
 
-    def __init__(self, name: str, root_folder: Folder, folders: List[Folder]) -> None:
+    def __init__(self, name: str, root_folder: Folder, folders: List[Folder], templates: List[Template]) -> None:
         self.name = name
         self.root_folder = root_folder
         self.folders = folders
+        self.templates = templates
 
     def create_folders(self):
         for folder in self.folders:
@@ -125,8 +128,14 @@ class Project:
 
         logger.info('{} project folders created'.format(self.name))
 
+    def create_templates(self):
+        for template in self.templates:
+            template.create()
+
+        logger.info('{} templates created'.format(self.name))
+
     def __repr__(self) -> str:
-        return '{}({}, {})'.format(__class__, self.name, self.root_folder, self.folders)
+        return '{}({}, {}, {}, {})'.format(__class__, self.name, self.root_folder, self.folders, self.templates)
 
     def __str__(self) -> str:
         return self.name

@@ -39,7 +39,7 @@ def test_raise_error_when_try_to_create_an_invalid_folder(tmp_folder):
 def test_create_project_folders(tmp_folder):
     root_path = os.path.join(tmp_folder, 'basic')
     folders = [Folder('tests'), Folder('src')]
-    project = Project('basic', Folder(root_path), folders)
+    project = Project('basic', Folder(root_path), folders, [])
 
     project.create_folders()
 
@@ -49,11 +49,27 @@ def test_create_project_folders(tmp_folder):
 
 def test_not_create_project_folders(tmp_folder):
     root_folder = os.path.join(tmp_folder, 'basic')
-    project = Project('basic', Folder(root_folder), [])
+    project = Project('basic', Folder(root_folder), [], [])
     project.create_folders()
 
     assert os.listdir(tmp_folder) == ['basic']
     assert os.listdir(root_folder) == []
+
+
+def test_create_project_templates(template_folder, tmp_folder):
+    root_folder = os.path.join(tmp_folder, 'basic')
+    template_destination = os.path.join(root_folder, 'text.txt')
+
+    template_text = 'template file'
+    with open(os.path.join(template_folder, 'text.txt'), 'w') as file:
+        file.write(template_text)
+
+    template = LocalTemplate('text.txt', template_destination)
+    project = Project('basic', Folder(root_folder), [], [template])
+    project.create_folders()
+    project.create_templates()
+
+    assert os.listdir(root_folder) == ['text.txt']
 
 
 def test_load_template(template_folder):
@@ -63,6 +79,7 @@ def test_load_template(template_folder):
 
     template = LocalTemplate('test.txt', '')
     assert template.load() == template_text
+
 
 def test_create_template(template_folder, tmp_folder):
     template_text = 'template file'
@@ -75,6 +92,7 @@ def test_create_template(template_folder, tmp_folder):
 
     assert os.listdir(tmp_folder) == ['test.txt']
 
+
 def test_raise_error_on_create_template(template_folder, tmp_folder):
     template_text = 'template file'
     with open(os.path.join(template_folder, 'test.txt'), 'w') as file:
@@ -82,9 +100,10 @@ def test_raise_error_on_create_template(template_folder, tmp_folder):
 
     project_folder = os.path.join(tmp_folder, 'test/')
     template = LocalTemplate('test.txt', project_folder)
-    
+
     with pytest.raises(CreateTemplateException):
         template.create()
+
 
 def test_load_template_and_format(template_folder):
     template_text = 'my project {name} {description}'
