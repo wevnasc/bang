@@ -22,6 +22,11 @@ class Folder:
 
     def __init__(self, path: str) -> None:
         self.path = path
+        self.sub_folders = []
+
+    def add_sub_folder(self, folder):
+        folder.path = os.path.join(self.path, folder.path)
+        self.sub_folders.append(folder)
 
     def create_folder(self) -> None:
         try:
@@ -32,6 +37,12 @@ class Folder:
                 self.path)
             logger.error(message, exc_info=True)
             raise CreateFolderException(message)
+
+        self._create_sub_folders()
+
+    def _create_sub_folders(self) -> None:
+        for folder in self.sub_folders:
+            folder.create_folder()
 
     def __repr__(self) -> str:
         return '{}({})'.format(__class__, self.path)
@@ -73,18 +84,20 @@ class LocalTemplate(Template):
 
 class Project:
 
-    def __init__(self, name: str, templates: List[Template], folders: List[Folder]) -> None:
+    def __init__(self, name: str, root_folder: Folder, folders: List[Folder]) -> None:
         self.name = name
-        self.templates = templates
+        self.root_folder = root_folder
         self.folders = folders
 
     def create_folders(self):
-        for directory in self.folders:
-            directory.create_folder()
+        for folder in self.folders:
+            self.root_folder.add_sub_folder(folder)
+        self.root_folder.create_folder()
+
         logger.info('{} project folders created'.format(self.name))
 
     def __repr__(self) -> str:
-        return '{}({}, {})'.format(__class__, self.name, self.templates, self.folders)
+        return '{}({}, {})'.format(__class__, self.name, self.root_folder, self.folders)
 
     def __str__(self) -> str:
         return self.name

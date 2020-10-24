@@ -6,7 +6,7 @@ from bigbang.project import Template
 
 
 @pytest.fixture()
-def temp_folder():
+def tmp_folder():
     temp_dir = './tmp/'
     os.makedirs(temp_dir)
     yield temp_dir
