@@ -24,7 +24,12 @@ class MissingFieldException(Exception):
 
 class Field:
 
-    def __init__(self, name: str, value: str, default_value: any = None) -> None:
+    def __init__(
+        self,
+        name: str,
+        value: str,
+        default_value: any = None
+    ) -> None:
         self.name = name
         self.value = value
         self.default_value = default_value
@@ -36,7 +41,12 @@ class Field:
         return hash(self.name)
 
     def __repr__(self) -> str:
-        return '{}({}, {}, {})'.format(__class__, self.name, self.value, self.default_value)
+        return '{}({}, {}, {})'.format(
+            __class__,
+            self.name,
+            self.value,
+            self.default_value
+        )
 
     def __str__(self) -> str:
         return self.name
@@ -44,7 +54,12 @@ class Field:
 
 class Template:
 
-    def __init__(self, from_path: str, to_path: str, fields: Set[Field] = None) -> None:
+    def __init__(
+        self,
+        from_path: str,
+        to_path: str,
+        fields: Set[Field] = None
+    ) -> None:
         self.from_path = os.path.join(BASE_DIR, from_path)
         self.to_path = to_path
         self.fields = fields if fields is not None else []
@@ -99,7 +114,7 @@ class Folder:
             if not os.path.exists(self.path):
                 os.makedirs(self.path)
         except OSError:
-            message = 'Not was possible create the folder on the directory {}'.format(
+            message = 'Not was possible create the folder {}'.format(
                 self.path)
             logger.error(message, exc_info=True)
             raise CreateFolderException(message)
@@ -156,7 +171,13 @@ class Project:
         return templates
 
     def __repr__(self) -> str:
-        return '{}({}, {}, {}, {})'.format(__class__,  self.root_folder, self.templates, self.folders, self.fields)
+        return '{}({}, {}, {}, {})'.format(
+            __class__,
+            self.root_folder,
+            self.templates,
+            self.folders,
+            self.fields
+        )
 
     def __str__(self) -> str:
         return self.name
