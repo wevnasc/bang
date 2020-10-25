@@ -2,7 +2,6 @@ import pytest
 
 import os
 from shutil import rmtree
-from bigbang.project import Template
 
 
 @pytest.fixture()
@@ -14,7 +13,7 @@ def tmp_folder():
 
 @pytest.fixture()
 def template_folder():
-    template = Template.BASE_TEMPLATE_FOLDER
+    template = './test-templates'
     os.makedirs(template)
     yield template
     rmtree(template)
