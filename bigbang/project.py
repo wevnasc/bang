@@ -181,3 +181,13 @@ class Project:
 
     def __str__(self) -> str:
         return self.name
+
+
+class ProjectFactory:
+
+    @staticmethod
+    def create_from_dict(json: str, project_folder: str):
+        templates = [Template(**template) for template in json['templates']]
+        folders = [Folder(**folder) for folder in json['folders']]
+        fields = [Field(**field) for field in json['fields']]
+        return Project(Folder(project_folder), templates, folders, fields)

@@ -1,10 +1,12 @@
 import pytest
 import os
+import json
 
 from bigbang.project import (
     Field,
     Folder,
     Project,
+    ProjectFactory,
     Template,
     CreateTemplateException,
     MissingFieldException
@@ -171,3 +173,12 @@ def test_define_prject_name_by_root_folder():
 
     project = Project(Folder('super'), [])
     assert project.name == 'super'
+
+
+def test_create_template_folder_from_json_file():
+    project = {
+        'fields': [{"name": "name", "value": "value"}],
+        'templates': [{"from_path": "text.txt", "to_path": "json.txt"}],
+        'folders': [{"path": "src"}]
+    }
+    assert isinstance(ProjectFactory.create_from_dict(project, 'test'), Project)

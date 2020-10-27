@@ -1,13 +1,8 @@
 import logging
 import os
+import json
 
-from bigbang.project import (
-    Field,
-    Folder,
-    Project,
-    Template,
-    BASE_DIR
-)
+from bigbang.project import ProjectFactory, BASE_DIR
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -16,15 +11,12 @@ logging.basicConfig(
 
 
 def main():
-    fields = {Field('project', 'startup'), Field(
-        'name', 'Weverson Nascimento')}
-    templates = [
-        Template(os.path.join(BASE_DIR, 'templates/' 'README.md'), 'README.md')
-    ]
-    project = Project(Folder(os.path.join(BASE_DIR, 'startup')),
-                      templates, fields=fields)
-    project.create_folders()
-    project.create_templates()
+    with open(os.path.join(BASE_DIR, 'templates/config.json'), 'r') as file:
+        dict_project = json.load(file)
+        project = ProjectFactory.create_from_dict(
+            dict_project, os.path.join(BASE_DIR, 'spacebot'))
+        project.create_folders()
+        project.create_templates()
 
 
 if __name__ == '__main__':
