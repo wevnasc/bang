@@ -1,0 +1,14 @@
+#!/bin/sh
+YELLOW='\033[0;33m'
+BLUE='\033[0;34m'
+stop() {
+    echo "${YELLOW}Ops.. I found some erros, please fix them before submit the push" >&2
+    exit 1
+}
+
+flake8 bang || stop
+mypy bang || stop
+pytest || stop
+
+echo "${BLUE}All good!" >&2
+exit 0
