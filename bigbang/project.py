@@ -139,12 +139,10 @@ class Project:
         root_folder: Folder,
         templates: List[Template],
         folders: List[Folder] = None,
-        fields: Set[Field] = None
     ) -> None:
         self.root_folder = root_folder
         self.folders = folders if folders is not None else []
         self.templates = self._add_templates_to_project(templates)
-        self.fields = fields if fields is not None else []
 
     @property
     def name(self):
@@ -158,9 +156,8 @@ class Project:
         logger.info('{} project folders created'.format(self.name))
 
     def create_templates(self):
-        self.fields += self._default_fields()
         for template in self.templates:
-            template.fields = self.fields
+            template.fields += self._default_fields()
             template.create()
 
         logger.info('{} templates created'.format(self.name))
@@ -179,12 +176,11 @@ class Project:
         return [Field('name', self.name)]
 
     def __repr__(self) -> str:
-        return '{}({}, {}, {}, {})'.format(
+        return '{}({}, {}, {})'.format(
             __class__,
             self.root_folder,
             self.templates,
             self.folders,
-            self.fields
         )
 
     def __str__(self) -> str:
@@ -200,6 +196,7 @@ class ProjectFactory:
         fields = [Field(**field) for field in fields]
         templates = [Template(
             from_path=template['from'],
-            to_path=template['to']
+            to_path=template['to'],
+            fields=fields
         ) for template in project_attrs['templates']]
-        return Project(Folder(project_folder), templates, folders, fields)
+        return Project(Folder(project_folder), templates, folders)
