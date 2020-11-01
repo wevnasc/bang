@@ -1,7 +1,7 @@
 import pytest
 import os
 
-from bigbang.project import (
+from bang.project import (
     Field,
     Folder,
     Project,
