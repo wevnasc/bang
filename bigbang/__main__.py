@@ -1,22 +1,30 @@
 import logging
-import os
-import json
 
-from bigbang.project import ProjectFactory, BASE_DIR
+from bigbang.project import ProjectFactory
+from bigbang import cli
+from bigbang import config
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    level=logging.DEBUG
+    level=logging.WARNING
 )
 
 
 def main():
-    with open(os.path.join(BASE_DIR, 'templates/config.json'), 'r') as file:
-        dict_project = json.load(file)
-        project = ProjectFactory.create_from_dict(
-            dict_project, os.path.join(BASE_DIR, 'spacebot'))
-        project.create_folders()
-        project.create_templates()
+
+    args = cli.get_args()
+    args = cli.validate_args(args)
+
+    settings = config.load_config(args.local)
+    settings = config.prefix_template(args.local, settings)
+
+    fields = cli.ask_for_fields(settings['fields'])
+
+    ProjectFactory.create(
+        settings,
+        fields,
+        args.path
+    ).build()
 
 
 if __name__ == '__main__':

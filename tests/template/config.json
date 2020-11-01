@@ -1,0 +1,25 @@
+{
+  "fields": [
+    {
+      "key": "description"
+    }
+  ],
+  "folders": [
+    {
+      "path": "src"
+    },
+    {
+      "path": "test"
+    }
+  ],
+  "templates": [
+    {
+      "from": "README.md",
+      "to": "README.md"
+    },
+    {
+      "from": "empty.txt",
+      "to": "src/index.js"
+    }
+  ]
+}

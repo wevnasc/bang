@@ -1,6 +1,5 @@
 import pytest
 import os
-import json
 
 from bigbang.project import (
     Field,
@@ -61,35 +60,26 @@ def test_not_create_project_folders(tmp_folder):
 
 def test_create_project_templates(template_folder, tmp_folder):
     root_folder = os.path.join(tmp_folder, 'basic')
-    file_path = os.path.join(template_folder, 'text.txt')
-
-    template_text = 'template file'
-    with open(file_path, 'w') as file:
-        file.write(template_text)
+    file_path = os.path.join(template_folder, 'default.txt')
 
     template = Template(file_path, 'text.txt')
     project = Project(Folder(root_folder), [template])
-    project.create_folders()
-    project.create_templates()
+    project.build()
 
     assert os.listdir(root_folder) == ['text.txt']
 
 
 def test_load_template(template_folder):
     template_text = 'template file'
-    file_path = os.path.join(template_folder, 'test.txt')
-    with open(file_path, 'w') as file:
-        file.write(template_text)
+    file_path = os.path.join(template_folder, 'default.txt')
 
     template = Template(file_path, '')
+
     assert template.load() == template_text
 
 
 def test_create_template(template_folder, tmp_folder):
-    template_text = 'template file'
-    file_path = os.path.join(template_folder, 'test.txt')
-    with open(file_path, 'w') as file:
-        file.write(template_text)
+    file_path = os.path.join(template_folder, 'default.txt')
 
     project_folder = os.path.join(tmp_folder, 'test.txt')
     template = Template(file_path, project_folder)
@@ -99,22 +89,15 @@ def test_create_template(template_folder, tmp_folder):
 
 
 def test_raise_error_on_create_template(template_folder, tmp_folder):
-    template_text = 'template file'
-    with open(os.path.join(template_folder, 'test.txt'), 'w') as file:
-        file.write(template_text)
-
     project_folder = os.path.join(tmp_folder, 'test/')
-    template = Template('test.txt', project_folder)
+    template = Template('default.txt', project_folder)
 
     with pytest.raises(CreateTemplateException):
         template.create()
 
 
 def test_load_template_and_format(template_folder):
-    template_text = 'my project {name} {description}'
-    file_path = os.path.join(template_folder, 'test.txt')
-    with open(file_path, 'w') as file:
-        file.write(template_text)
+    file_path = os.path.join(template_folder, 'params.txt')
 
     fields = {
         Field('name', 'basic'),
@@ -125,10 +108,7 @@ def test_load_template_and_format(template_folder):
 
 
 def test_load_template_wiht_many_fields(template_folder):
-    template_text = 'my project {name} {description}'
-    file_path = os.path.join(template_folder, 'test.txt')
-    with open(file_path, 'w') as file:
-        file.write(template_text)
+    file_path = os.path.join(template_folder, 'params.txt')
 
     fields = {
         Field('name', 'basic'),
@@ -140,10 +120,7 @@ def test_load_template_wiht_many_fields(template_folder):
 
 
 def test_load_template_wiht_less_fields(template_folder):
-    template_text = 'my project {name} {description}'
-    file_path = os.path.join(template_folder, 'test.txt')
-    with open(file_path, 'w') as file:
-        file.write(template_text)
+    file_path = os.path.join(template_folder, 'params.txt')
 
     fields = {
         Field('name', 'basic'),
@@ -155,10 +132,7 @@ def test_load_template_wiht_less_fields(template_folder):
 
 
 def test_raise_error_when_not_is_a_valid_utf_8_file(template_folder):
-    template_text = 'template file'.encode(encoding="ascii", errors="ignore")
-    file_path = os.path.join(template_folder, 'test.txt')
-    with open(file_path, 'wb') as file:
-        file.write(template_text)
+    file_path = os.path.join(template_folder, 'invalid.txt')
 
     with pytest.raises(Exception) as error:
         template = Template('test.txt')
@@ -175,10 +149,10 @@ def test_define_prject_name_by_root_folder():
     assert project.name == 'super'
 
 
-def test_create_template_folder_from_json_file():
+def test_create_template_folder_from_dict():
     project = {
-        'fields': [{"name": "name", "value": "value"}],
-        'templates': [{"from_path": "text.txt", "to_path": "json.txt"}],
+        'templates': [{"from": "text.txt", "to": "json.txt"}],
         'folders': [{"path": "src"}]
     }
-    assert isinstance(ProjectFactory.create_from_dict(project, 'test'), Project)
+    fields = [{"key": "name", "value": "value"}]
+    assert isinstance(ProjectFactory.create(project, fields, 'test'), Project)

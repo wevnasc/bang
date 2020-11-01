@@ -1,6 +1,6 @@
 import os
 import logging
-from typing import List, Set
+from typing import List, Set, Dict
 from functools import reduce
 
 logger = logging.getLogger(__name__)
@@ -26,19 +26,19 @@ class Field:
 
     def __init__(
         self,
-        name: str,
+        key: str,
         value: str,
         default_value: any = None
     ) -> None:
-        self.name = name
+        self.key = key
         self.value = value
         self.default_value = default_value
 
     def __eq__(self, o: object) -> bool:
-        return self.name == o.name
+        return self.key == o.key
 
     def __hash__(self):
-        return hash(self.name)
+        return hash(self.key)
 
     def __repr__(self) -> str:
         return '{}({}, {}, {})'.format(
@@ -89,7 +89,7 @@ class Template:
     def _load_fields(self, content):
         try:
             fields = reduce(
-                lambda dict, field: {**dict, field.name: field.value},
+                lambda dict, field: {**dict, field.key: field.value},
                 self.fields, {}
             )
             return content.format(**fields)
@@ -139,12 +139,10 @@ class Project:
         root_folder: Folder,
         templates: List[Template],
         folders: List[Folder] = None,
-        fields: Set[Field] = None
     ) -> None:
         self.root_folder = root_folder
         self.folders = folders if folders is not None else []
         self.templates = self._add_templates_to_project(templates)
-        self.fields = fields if fields is not None else []
 
     @property
     def name(self):
@@ -159,10 +157,14 @@ class Project:
 
     def create_templates(self):
         for template in self.templates:
-            template.fields = self.fields
+            template.fields += self._default_fields()
             template.create()
 
         logger.info('{} templates created'.format(self.name))
+
+    def build(self):
+        self.create_folders()
+        self.create_templates()
 
     def _add_templates_to_project(self, templates):
         for template in templates:
@@ -170,13 +172,15 @@ class Project:
                 self.root_folder.path, template.to_path)
         return templates
 
+    def _default_fields(self) -> List[Field]:
+        return [Field('name', self.name)]
+
     def __repr__(self) -> str:
-        return '{}({}, {}, {}, {})'.format(
+        return '{}({}, {}, {})'.format(
             __class__,
             self.root_folder,
             self.templates,
             self.folders,
-            self.fields
         )
 
     def __str__(self) -> str:
@@ -186,8 +190,13 @@ class Project:
 class ProjectFactory:
 
     @staticmethod
-    def create_from_dict(json: str, project_folder: str):
-        templates = [Template(**template) for template in json['templates']]
-        folders = [Folder(**folder) for folder in json['folders']]
-        fields = [Field(**field) for field in json['fields']]
-        return Project(Folder(project_folder), templates, folders, fields)
+    def create(project_attrs: Dict, fields: List[Dict], project_folder: str):
+
+        folders = [Folder(**folder) for folder in project_attrs['folders']]
+        fields = [Field(**field) for field in fields]
+        templates = [Template(
+            from_path=template['from'],
+            to_path=template['to'],
+            fields=fields
+        ) for template in project_attrs['templates']]
+        return Project(Folder(project_folder), templates, folders)
