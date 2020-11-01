@@ -1,11 +1,11 @@
 from setuptools import setup
 
 setup(
-    name = 'bigbang',
+    name = 'bang',
     version = '0.1.0',
-    packages = ['bigbang'],
+    packages = ['bang'],
     entry_points = {
         'console_scripts': [
-            'bigbang = bigbang.__main__:main'
+            'bang = bang.__main__:main'
         ]
     })

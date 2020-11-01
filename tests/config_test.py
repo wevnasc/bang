@@ -1,5 +1,5 @@
 from tests.conftest import template_folder
-from bigbang import config
+from bang import config
 
 
 def test_should_load_config_file_as_dict(template_folder):

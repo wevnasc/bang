@@ -1,8 +1,8 @@
 import logging
 
-from bigbang.project import ProjectFactory
-from bigbang import cli
-from bigbang import config
+from bang.project import ProjectFactory
+from bang import cli
+from bang import config
 
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
