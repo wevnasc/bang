@@ -1,6 +1,6 @@
 import os
 import logging
-from typing import List, Set, Dict
+from typing import Any, List, Set, Dict
 from functools import reduce
 
 logger = logging.getLogger(__name__)
@@ -28,13 +28,13 @@ class Field:
         self,
         key: str,
         value: str,
-        default_value: any = None
+        default_value: Any = None
     ) -> None:
         self.key = key
         self.value = value
         self.default_value = default_value
 
-    def __eq__(self, o: object) -> bool:
+    def __eq__(self, o: Any) -> bool:
         return self.key == o.key
 
     def __hash__(self):
@@ -42,14 +42,14 @@ class Field:
 
     def __repr__(self) -> str:
         return '{}({}, {}, {})'.format(
-            __class__,
-            self.name,
+            self.__class__,
+            self.key,
             self.value,
             self.default_value
         )
 
     def __str__(self) -> str:
-        return self.name
+        return self.key
 
 
 class Template:
@@ -103,7 +103,7 @@ class Folder:
 
     def __init__(self, path: str) -> None:
         self.path = path
-        self.sub_folders = []
+        self.sub_folders: List[Folder] = []
 
     def add_sub_folder(self, folder):
         folder.path = os.path.join(self.path, folder.path)
@@ -126,7 +126,7 @@ class Folder:
             folder.create_folder()
 
     def __repr__(self) -> str:
-        return '{}({})'.format(__class__, self.path)
+        return '{}({})'.format(self.__class__, self.path)
 
     def __str__(self) -> str:
         return self.path
@@ -177,7 +177,7 @@ class Project:
 
     def __repr__(self) -> str:
         return '{}({}, {}, {})'.format(
-            __class__,
+            self.__class__,
             self.root_folder,
             self.templates,
             self.folders,
@@ -191,12 +191,15 @@ class ProjectFactory:
 
     @staticmethod
     def create(project_attrs: Dict, fields: List[Dict], project_folder: str):
+        folders: List[Folder] = [Folder(**folder)
+                                 for folder in project_attrs['folders']]
 
-        folders = [Folder(**folder) for folder in project_attrs['folders']]
-        fields = [Field(**field) for field in fields]
-        templates = [Template(
+        template_fields: Set[Field] = set(Field(**field) for field in fields)
+
+        templates: List[Template] = [Template(
             from_path=template['from'],
             to_path=template['to'],
-            fields=fields
+            fields=template_fields
         ) for template in project_attrs['templates']]
+
         return Project(Folder(project_folder), templates, folders)
