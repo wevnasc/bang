@@ -1,6 +1,6 @@
 import os
 import logging
-from typing import List, Set
+from typing import List, Set, Dict
 from functools import reduce
 
 logger = logging.getLogger(__name__)
@@ -26,19 +26,19 @@ class Field:
 
     def __init__(
         self,
-        name: str,
+        key: str,
         value: str,
         default_value: any = None
     ) -> None:
-        self.name = name
+        self.key = key
         self.value = value
         self.default_value = default_value
 
     def __eq__(self, o: object) -> bool:
-        return self.name == o.name
+        return self.key == o.key
 
     def __hash__(self):
-        return hash(self.name)
+        return hash(self.key)
 
     def __repr__(self) -> str:
         return '{}({}, {}, {})'.format(
@@ -89,7 +89,7 @@ class Template:
     def _load_fields(self, content):
         try:
             fields = reduce(
-                lambda dict, field: {**dict, field.name: field.value},
+                lambda dict, field: {**dict, field.key: field.value},
                 self.fields, {}
             )
             return content.format(**fields)
@@ -158,17 +158,25 @@ class Project:
         logger.info('{} project folders created'.format(self.name))
 
     def create_templates(self):
+        self.fields += self._default_fields()
         for template in self.templates:
             template.fields = self.fields
             template.create()
 
         logger.info('{} templates created'.format(self.name))
 
+    def build(self):
+        self.create_folders()
+        self.create_templates()
+
     def _add_templates_to_project(self, templates):
         for template in templates:
             template.to_path = os.path.join(
                 self.root_folder.path, template.to_path)
         return templates
+
+    def _default_fields(self) -> List[Field]:
+        return [Field('name', self.name)]
 
     def __repr__(self) -> str:
         return '{}({}, {}, {}, {})'.format(
@@ -186,8 +194,12 @@ class Project:
 class ProjectFactory:
 
     @staticmethod
-    def create_from_dict(json: str, project_folder: str):
-        templates = [Template(**template) for template in json['templates']]
-        folders = [Folder(**folder) for folder in json['folders']]
-        fields = [Field(**field) for field in json['fields']]
+    def create(project_attrs: Dict, fields: List[Dict], project_folder: str):
+
+        folders = [Folder(**folder) for folder in project_attrs['folders']]
+        fields = [Field(**field) for field in fields]
+        templates = [Template(
+            from_path=template['from'],
+            to_path=template['to']
+        ) for template in project_attrs['templates']]
         return Project(Folder(project_folder), templates, folders, fields)
