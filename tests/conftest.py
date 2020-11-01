@@ -13,7 +13,5 @@ def tmp_folder():
 
 @pytest.fixture()
 def template_folder():
-    template = './test-templates'
-    os.makedirs(template)
+    template = './tests/template'
     yield template
-    rmtree(template)
