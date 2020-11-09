@@ -4,11 +4,11 @@ import os
 import sys
 
 
-def ask_for_fields(fields: List[Dict]):
+def ask_for_fields(fields: List[Dict]) -> List[Dict]:
     result = []
     for field in fields:
         key = field['key']
-        value = input('please informe the {}: '.format(key))
+        value = input('please inform the {}: '.format(key))
         result.append({'key': key, 'value': value})
     return result
 

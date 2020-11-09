@@ -46,7 +46,7 @@ def test_create_project_folders(tmp_folder):
     project.create_folders()
 
     assert os.listdir(tmp_folder) == ['basic']
-    assert os.listdir(root_path) == ['tests', 'src']
+    assert sorted(os.listdir(root_path)) == sorted(['tests', 'src'])
 
 
 def test_not_create_project_folders(tmp_folder):
@@ -62,7 +62,7 @@ def test_create_project_templates(template_folder, tmp_folder):
     root_folder = os.path.join(tmp_folder, 'basic')
     file_path = os.path.join(template_folder, 'default.txt')
 
-    template = Template(file_path, 'text.txt')
+    template = Template(file_path, os.path.join(root_folder, 'text.txt'))
     project = Project(Folder(root_folder), [template])
     project.build()
 
@@ -149,10 +149,8 @@ def test_define_prject_name_by_root_folder():
     assert project.name == 'super'
 
 
-def test_create_template_folder_from_dict():
-    project = {
-        'templates': [{"from": "text.txt", "to": "json.txt"}],
-        'folders': [{"path": "src"}]
-    }
-    fields = [{"key": "name", "value": "value"}]
-    assert isinstance(ProjectFactory.create(project, fields, 'test'), Project)
+def test_create_template_folder_from_dict(template_folder):
+    folders = ['src', 'tests']
+    templates = ['src/index.html', 'tests/index_test.js']
+    fields = [{'key': 'version', 'value': '1.0.0'}]
+    assert isinstance(ProjectFactory.create('template', 'project', folders, templates, fields), Project)

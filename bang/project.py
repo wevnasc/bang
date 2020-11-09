@@ -25,10 +25,10 @@ class MissingFieldException(Exception):
 class Field:
 
     def __init__(
-        self,
-        key: str,
-        value: str,
-        default_value: Any = None
+            self,
+            key: str,
+            value: str,
+            default_value: Any = None
     ) -> None:
         self.key = key
         self.value = value
@@ -55,14 +55,14 @@ class Field:
 class Template:
 
     def __init__(
-        self,
-        from_path: str,
-        to_path: str,
-        fields: Set[Field] = None
+            self,
+            from_path: str,
+            to_path: str,
+            fields: Set[Field] = None
     ) -> None:
         self.from_path = os.path.join(BASE_DIR, from_path)
         self.to_path = to_path
-        self.fields = fields if fields is not None else []
+        self.fields = fields if fields is not None else set()
         self._content = None
 
     def load(self):
@@ -89,7 +89,7 @@ class Template:
     def _load_fields(self, content):
         try:
             fields = reduce(
-                lambda dict, field: {**dict, field.key: field.value},
+                lambda data, field: {**data, field.key: field.value},
                 self.fields, {}
             )
             return content.format(**fields)
@@ -97,6 +97,14 @@ class Template:
             message = 'Field {} not found'.format(error)
             logger.error(message, exc_info=True)
             raise MissingFieldException(message)
+
+    def __repr__(self) -> str:
+        return '{}({}, {}, {})'.format(
+            self.__class__,
+            self.from_path,
+            self.to_path,
+            self.fields
+        )
 
 
 class Folder:
@@ -135,14 +143,14 @@ class Folder:
 class Project:
 
     def __init__(
-        self,
-        root_folder: Folder,
-        templates: List[Template],
-        folders: List[Folder] = None,
+            self,
+            root_folder: Folder,
+            templates: List[Template],
+            folders: List[Folder] = None,
     ) -> None:
         self.root_folder = root_folder
         self.folders = folders if folders is not None else []
-        self.templates = self._add_templates_to_project(templates)
+        self.templates = templates
 
     @property
     def name(self):
@@ -157,7 +165,7 @@ class Project:
 
     def create_templates(self):
         for template in self.templates:
-            template.fields += self._default_fields()
+            template.fields.add(self._field_name())
             template.create()
 
         logger.info('{} templates created'.format(self.name))
@@ -166,14 +174,8 @@ class Project:
         self.create_folders()
         self.create_templates()
 
-    def _add_templates_to_project(self, templates):
-        for template in templates:
-            template.to_path = os.path.join(
-                self.root_folder.path, template.to_path)
-        return templates
-
-    def _default_fields(self) -> List[Field]:
-        return [Field('name', self.name)]
+    def _field_name(self) -> Field:
+        return Field('name', self.name)
 
     def __repr__(self) -> str:
         return '{}({}, {}, {})'.format(
@@ -190,16 +192,24 @@ class Project:
 class ProjectFactory:
 
     @staticmethod
-    def create(project_attrs: Dict, fields: List[Dict], project_folder: str):
-        folders: List[Folder] = [Folder(**folder)
-                                 for folder in project_attrs['folders']]
-
+    def create(
+            template_folder: str,
+            project_folder: str,
+            folders: List[str],
+            templates: List[str],
+            fields: List[Dict]
+    ):
+        project_folders: List[Folder] = [Folder(folder) for folder in folders]
         template_fields: Set[Field] = set(Field(**field) for field in fields)
 
-        templates: List[Template] = [Template(
-            from_path=template['from'],
-            to_path=template['to'],
+        project_templates: List[Template] = [Template(
+            from_path=os.path.join(template_folder, template),
+            to_path=os.path.join(project_folder, template),
             fields=template_fields
-        ) for template in project_attrs['templates']]
+        ) for template in templates]
 
-        return Project(Folder(project_folder), templates, folders)
+        return Project(
+            Folder(project_folder),
+            project_templates,
+            project_folders
+        )
